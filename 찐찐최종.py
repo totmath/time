@@ -84,11 +84,5 @@ def send_timetable():
         print(f"슬랙 전송 에러: {e}")
 
 # --- [스케줄러 설정] ---
-scheduler = BlockingScheduler()
-
-# 매일 아침 8시 10분에 실행 (월~금)
-# 테스트를 해보려면 hour와 minute를 현재 시간 1분 뒤로 고쳐서 실행해보세요!
-scheduler.add_job(send_timetable, 'cron', day_of_week='mon-fri', hour=8, minute=0)
-
-print("⏰ 시간표 알리미가 가동되었습니다. (아침 8시 10분 대기 중)")
-scheduler.start()
+if __name__ == ""__main__"":
+    send_timetable()
