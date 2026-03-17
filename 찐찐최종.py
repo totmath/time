@@ -39,7 +39,7 @@ def make_param():
 def fetch():
     s = requests.Session()
     s.headers.update({"User-Agent":"Mozilla/5.0","Referer":f"{API_BASE}/st#"})
-    res = s.get(f"{API_BASE}/36179?{make_param()}", timeout=10)
+    res = s.get(f"http://comci.net:4082/36179?{make_param()}", timeout=10)
     res.encoding = "utf-8"
     return json.JSONDecoder().raw_decode(res.text)[0]
 
