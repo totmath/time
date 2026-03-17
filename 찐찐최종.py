@@ -1,36 +1,26 @@
 import requests, base64, json, unicodedata, ssl, certifi, os
-from datetime import datetime
-from slack_sdk import WebClient
-from apscheduler.schedulers.blocking import BlockingScheduler
 from datetime import datetime, timedelta, timezone
+from slack_sdk import WebClient
 
 # --- [시간 설정] ---
-# 깃허브 서버(영국) 시간을 한국 시간으로 강제 고정합니다.
 KST = timezone(timedelta(hours=9))
 now = datetime.now(KST)
-
-# 오늘이 몇 요일인지 한국 시간 기준으로 가져옵니다.
 weekday = now.weekday()
+
 # --- [슬랙 설정] ---
-# 아까 발급받은 xoxb- 토큰과 채널 ID를 여기에 넣으세요
-SLACK_TOKEN = os.environ.get("SLACK_TOKEN")  # 환경 변수에서 토큰 읽기 (보안상 권장)
-CHANNEL_ID = os.environ.get("CHANNEL")  # 환경 변수에서 채널 ID 읽기
+SLACK_TOKEN = os.environ.get("SLACK_TOKEN")
+CHANNEL_ID = os.environ.get("CHANNEL")
 
 # --- [학교 설정] ---
 GRADE, CLASS_NUM = 1, 3
 INTERNAL_CODE = "73629"
 SCHOOL_CODE   = "12045"
-API_BASE      = "http://comci.net:4082"
+API_BASE      = "[http://comci.net:4082](http://comci.net:4082)"
 DAYS = ["월","화","수","목","금"]
 
-# --- [데이터 매핑 (기본 제공하신 내용)] ---
+# --- [데이터 매핑] ---
 NAME_MAP = { "김선": "김선아", "김진": "김진영", "김세": "김세희", "이진": "이진희", "조동": "조동기", "임기묵": "임기묵", "임기홍": "임기홍", "박성": "박성진", "홍창": "홍창욱", "강은": "강은지", "양하": "양하은", "김정": "김정민", "오상": "오상림", "임수": "임수빈", "백민": "백민준", "박동": "박동희", "이후": "이후정", "전선": "전선영" }
-TEACHER_MAP = { "김선": ("화학실험실1", "3층"), "김진": ("컴퓨터실1", "3층"), "김세": ("어학실2", "4층"), "이진": ("301호", "3층"), "조동": ("201호", "2층"), "임기묵": ("202호", "2층"), "박성": ("체육관", ""), "홍창": ("203호", "2층"), "임기홍": ("어학실1", "4층"), "강은": ("물리학실험실1", "4층"), "양하": ("물리학실험실1", "4층"), "김정": ("303호", "3층"), "오상": ("지구과학실험실1", "5층"), "임수": ("생명과학실1", "2층"), "백민": ("생명과학실1", "2층"), "박동": ("지구과학실험실1", "5층"), "이후": ("화학실험실1", "3층") }
-
-def pad(text, width):
-    text = str(text)
-    w = sum(2 if unicodedata.east_asian_width(c) in ("W","F") else 1 for c in text)
-    return text + " " * max(0, width - w)
+TEACHER_MAP = { "김선": ("화학실1", "3층"), "김진": ("컴퓨터실1", "3층"), "김세": ("어학실2", "4층"), "이진": ("301호", "3층"), "조동": ("201호", "2층"), "임기묵": ("202호", "2층"), "박성": ("체육관", ""), "홍창": ("203호", "2층"), "임기홍": ("어학실1", "4층"), "강은": ("물리학실1", "4층"), "양하": ("물리학실1", "4층"), "김정": ("303호", "3층"), "오상": ("지구과실1", "5층"), "임수": ("생명과실1", "2층"), "백민": ("생명과실1", "2층"), "박동": ("지구과실1", "5층"), "이후": ("화학실1", "3층") }
 
 def get_classroom(teacher, subject, all_teachers, idx):
     clean = teacher.rstrip("*").strip()
@@ -43,8 +33,8 @@ def get_classroom(teacher, subject, all_teachers, idx):
     return TEACHER_MAP.get(clean, ("본 교실",""))
 
 def make_param():
-    now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    return base64.b64encode(f"{INTERNAL_CODE}_{SCHOOL_CODE}_{now}_1".encode()).decode()
+    t_str = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    return base64.b64encode(f"{INTERNAL_CODE}_{SCHOOL_CODE}_{t_str}_1".encode()).decode()
 
 def fetch():
     s = requests.Session()
@@ -54,19 +44,18 @@ def fetch():
     return json.JSONDecoder().raw_decode(res.text)[0]
 
 def send_timetable():
-    """시간표를 파싱하여 슬랙으로 전송하는 메인 함수"""
     today = weekday
-    if today >= 5: return # 주말 제외
+    if today >= 5: return 
 
     data = fetch()
     tl, sl, z = data.get("자료446",[]), data.get("자료492",[]), data.get("자료147",[])
     day_data = z[GRADE][CLASS_NUM][today+1]
     
-    # 메시지 작성 시작
-    msg = f"📅 *{DAYS[today]}요일 | {GRADE}학년 {CLASS_NUM}반 시간표*\n"
-    msg += "```" # 표 형식을 위해 코드 블록 시작
-    msg += f"{pad('교시', 6)} {pad('과목', 14)} {pad('선생님', 10)} {pad('강의실', 14)} 층\n"
-    msg += "-" * 55 + "\n"
+    # --- [수정된 메시지 생성 부분] ---
+    msg = f"📅 *{DAYS[today]}요일 | {GRADE}-{CLASS_NUM} 시간표*\n"
+    msg += "```"
+    msg += "교시 | 과목       | 장소\n"
+    msg += "─────|────────────|──────────────\n"
 
     periods = []
     for code in day_data[1:][:day_data[0]]:
@@ -79,25 +68,25 @@ def send_timetable():
     at = [r for _, _, r in periods]
     for i, (subj, tchr, t_raw) in enumerate(periods, 1):
         room, floor = get_classroom(t_raw, subj, at, i-1)
+        
+        # 7교시 동아리 등 예외 처리
         if (today == 2 or today == 3) and i == 7:
-            room_display = ""
-            floor_display = ""
+            room_display = "동아리실"
         else:
             room_display = room
-            floor_display = floor or '-'
-        
-        msg += f"{pad(str(i)+'교시', 6)} {pad(subj, 14)} {pad(tchr, 10)} {pad(room_display, 14)} {floor_display}\n"
+
+        # 한글 너비 맞춤 (과목명 4글자 기준 정렬)
+        s_fixed = subj[:4].ljust(6)
+        msg += f" {i}   | {s_fixed} | {room_display}\n"
     
     msg += "```"
 
-    # 슬랙 전송
     try:
         client = WebClient(token=SLACK_TOKEN, ssl=ssl.create_default_context(cafile=certifi.where()))
         client.chat_postMessage(channel=CHANNEL_ID, text=msg)
-        print(f"[{datetime.now()}] 슬랙으로 시간표를 쐈습니다! 🚀")
+        print(f"[{datetime.now(KST)}] 전송 완료! 🚀")
     except Exception as e:
-        print(f"슬랙 전송 에러: {e}")
+        print(f"에러: {e}")
 
-# --- [스케줄러 설정] ---
 if __name__ == "__main__":
     send_timetable()
