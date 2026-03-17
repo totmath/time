@@ -55,7 +55,7 @@ def fetch():
 
 def send_timetable():
     """시간표를 파싱하여 슬랙으로 전송하는 메인 함수"""
-    today = datetime.today().weekday()
+    today = weekday
     if today >= 5: return # 주말 제외
 
     data = fetch()
