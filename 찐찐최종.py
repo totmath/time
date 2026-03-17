@@ -2,7 +2,15 @@ import requests, base64, json, unicodedata, ssl, certifi, os
 from datetime import datetime
 from slack_sdk import WebClient
 from apscheduler.schedulers.blocking import BlockingScheduler
+from datetime import datetime, timedelta, timezone
 
+# --- [시간 설정] ---
+# 깃허브 서버(영국) 시간을 한국 시간으로 강제 고정합니다.
+KST = timezone(timedelta(hours=9))
+now = datetime.now(KST)
+
+# 오늘이 몇 요일인지 한국 시간 기준으로 가져옵니다.
+weekday = now.weekday()
 # --- [슬랙 설정] ---
 # 아까 발급받은 xoxb- 토큰과 채널 ID를 여기에 넣으세요
 SLACK_TOKEN = os.environ.get("SLACK_TOKEN")  # 환경 변수에서 토큰 읽기 (보안상 권장)
