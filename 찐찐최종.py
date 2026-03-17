@@ -6,7 +6,7 @@ from apscheduler.schedulers.blocking import BlockingScheduler
 # --- [슬랙 설정] ---
 # 아까 발급받은 xoxb- 토큰과 채널 ID를 여기에 넣으세요
 SLACK_TOKEN = os.environ.get("SLACK_TOKEN")  # 환경 변수에서 토큰 읽기 (보안상 권장)
-CHANNEL_ID = os.environ.get("CHANNEL_ID")  # 환경 변수에서 채널 ID 읽기
+CHANNEL_ID = os.environ.get("CHANNEL")  # 환경 변수에서 채널 ID 읽기
 
 # --- [학교 설정] ---
 GRADE, CLASS_NUM = 1, 3
