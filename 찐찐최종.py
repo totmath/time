@@ -1,4 +1,4 @@
-import requests, base64, json, unicodedata, ssl, certifi
+import requests, base64, json, unicodedata, ssl, certifi, os
 from datetime import datetime
 from slack_sdk import WebClient
 from apscheduler.schedulers.blocking import BlockingScheduler
