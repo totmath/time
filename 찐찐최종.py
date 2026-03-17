@@ -28,35 +28,45 @@ timetable_data = {
 }
 
 # 1. 요일 변환 사전 (함수 밖에 두거나 안에 두어도 됨)
-days_ko = {
-    "Monday": "월요일", "Tuesday": "화요일", "Wednesday": "수요일",
-    "Thursday": "목요일", "Friday": "금요일", "Saturday": "토요일", "Sunday": "일요일"
-}
+# 1. 요일 이름 리스트 (0: 월요일, 1: 화요일 ... 6: 일요일)
+days_list_ko = ["월요일", "화요일", "수요일", "목요일", "금요일", "토요일", "일요일"]
+# 데이터 키값 리스트 (사용자님의 timetable_data 키값에 맞추세요)
+days_list_en = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
 
 def send_slack_timetable():
-    # 데이터는 영어("Wednesday")로 찾고!
-    today_schedule = timetable_data.get(target_day_name, [])
+    # 0~6 사이의 숫자로 오늘 요일을 가져옵니다 (오늘이 수요일이면 2)
+    day_idx = now.weekday() 
     
-    # 출력용 이름만 한글("수요일")로 바꿉니다.
-    target_day_ko = days_ko.get(target_day_name, target_day_name)
+    # 1. 한글 요일 이름 정하기
+    target_day_ko = days_list_ko[day_idx]
+    # 2. 데이터 찾을 키 이름 정하기
+    target_key = days_list_en[day_idx]
+
+    # 데이터 가져오기 (만약 키값이 다르면 여기서 에러 없이 빈 리스트 반환)
+    today_schedule = timetable_data.get(target_key, [])
     
+    # [디버깅] 로그에서 확인용 (Actions 로그에 찍힙니다)
+    print(f"인식된 요일 인덱스: {day_idx}")
+    print(f"찾으려는 키값: {target_key}")
+
     if not today_schedule:
-        print(f"오늘({target_day_name})은 수업 데이터가 없네요.")
+        print(f"⚠️ {target_key}에 해당하는 시간표 데이터가 없습니다!")
         return
 
-    # 메시지 디자인 (선 빼고 공백으로 예쁘게)
+    # 메시지 조립
     message_text = f"✨ *{now.strftime('%m/%d')} {target_day_ko} 시간표* ✨\n\n"
 
     for item in today_schedule:
         p = item['period'].replace("교시", "").strip()
-        # 선(-) 대신 이모지와 줄바꿈으로 정리
         message_text += f"{p}️⃣  *{item['subject']}* ({item['teacher']})\n"
         message_text += f"      📍 _{item['location']} ({item['floor']})_\n\n"
 
-    # 전송 (CHANNEL 이름 확인!)
+    # 전송 (CHANNEL 이름 통일!)
     try:
         client.chat_postMessage(channel=CHANNEL, text=message_text)
-        print("성공적으로 보냈습니다!")
+        print("🚀 슬랙 전송 성공!")
     except Exception as e:
-        print(f"에러 발생: {e}")
-    client.chat_postMessage(channel=CHANNEL, text=message_text)
+        print(f"❌ 전송 실패: {e}")
+
+if __name__ == "__main__":
+    send_slack_timetable()
