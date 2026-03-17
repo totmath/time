@@ -51,13 +51,13 @@ def send_timetable():
     tl, sl, z = data.get("자료446",[]), data.get("자료492",[]), data.get("자료147",[])
     day_data = z[GRADE][CLASS_NUM][today+1]
     
-    # 메시지 상단
+    # 1. 메시지 상단 디자인
     msg = f"📅 *{DAYS[today]}요일 | {GRADE}-{CLASS_NUM} 시간표*\n"
     msg += "```"
     msg += "교시| 과목  | 선 생 님 | 장소(층)\n"
     msg += "───|───────|──────────|──────────\n"
 
-    # 데이터 정리 (에러 방지용)
+    # 2. 데이터 정리
     periods = []
     for code in day_data[1:][:day_data[0]]:
         if not code: continue
@@ -70,7 +70,7 @@ def send_timetable():
     for i, (subj, tchr, t_raw) in enumerate(periods, 1):
         room, floor = get_classroom(t_raw, subj, at, i-1)
         
-        # 장소 및 층수 표시 정리
+        # 장소/층수 표시 (동아리 예외처리)
         if (today == 2 or today == 3) and i == 7:
             room_display = "동아리"
             floor_display = ""
@@ -78,21 +78,21 @@ def send_timetable():
             room_display = room
             floor_display = f"({floor})" if floor else ""
 
-        # 너비 맞춤 (한글 칸 수 조절)
-        s_fixed = subj[:3].ljust(4) # 과목 3글자
-        t_fixed = tchr[:3].ljust(4) # 선생님 3글자
+        # 너비 맞춤 (과목/선생님 3글자씩)
+        s_fixed = subj[:3].ljust(4) 
+        t_fixed = tchr[:3].ljust(4) 
         
         msg += f" {i} | {s_fixed} | {t_fixed} | {room_display}{floor_display}\n"
     
     msg += "```"
 
+    # 3. 슬랙 전송부
     try:
         client = WebClient(token=SLACK_TOKEN, ssl=ssl.create_default_context(cafile=certifi.where()))
         client.chat_postMessage(channel=CHANNEL_ID, text=msg)
-        print(f"[{datetime.now(KST)}] 전송 성공! 🚀")
+        print(f"[{datetime.now(KST)}] 전송 완료! 🚀")
     except Exception as e:
-        print(f"에러: {e}")
-
+        print(f"슬랙 전송 에러: {e}")
 
 if __name__ == "__main__":
     send_timetable()
