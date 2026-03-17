@@ -21,6 +21,8 @@ jobs:
           pip install -r requirements.txt
       - name: Run Bot
         env:
+          # 왼쪽(파이썬이 쓸 이름): 오른쪽(Secrets에 저장한 이름)
           SLACK_TOKEN: ${{ secrets.SLACK_TOKEN }}
-          CHANNEL_ID: ${{ secrets.CHANNEL_ID }}
+          CHANNEL: ${{ secrets.CHANNEL }}  # <-- 여기가 CHANNEL_ID로 되어있으면 안 오고, CHANNEL이어야 합니다!
+          
         run: python '찐찐최종.py' # 따옴표 안에 파일 이름을 정확히 넣었습니다.
