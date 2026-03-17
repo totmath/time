@@ -52,3 +52,5 @@ def send_slack_timetable():
 
 if __name__ == "__main__":
     send_slack_timetable()
+
+
