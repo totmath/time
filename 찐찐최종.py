@@ -79,7 +79,14 @@ def send_timetable():
     at = [r for _, _, r in periods]
     for i, (subj, tchr, t_raw) in enumerate(periods, 1):
         room, floor = get_classroom(t_raw, subj, at, i-1)
-        msg += f"{pad(str(i)+'교시', 6)} {pad(subj, 14)} {pad(tchr, 10)} {pad(room, 14)} {floor or '-'}\n"
+        if today == 2 and i == 7:
+            room_display = ""
+            floor_display = ""
+        else:
+            room_display = room
+            floor_display = floor or '-'
+            
+        msg += f"{pad(str(i)+'교시', 6)} {pad(subj, 14)} {pad(tchr, 10)} {pad(room_display, 14)} {floor_display}\n"
     
     msg += "```"
 
