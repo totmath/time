@@ -27,30 +27,36 @@ timetable_data = {
     ]
 }
 
+# --- [수정 1. 요일 한글 변환 추가] ---
+days_ko = {
+    "Monday": "월요일",
+    "Tuesday": "화요일",
+    "Wednesday": "수요일",
+    "Thursday": "목요일",
+    "Friday": "금요일",
+    "Saturday": "토요일",
+    "Sunday": "일요일"
+}
+target_day_ko = days_ko.get(target_day_name, target_day_name)
+
 def send_slack_timetable():
-    # 오늘 요일에 맞는 데이터 가져오기
     today_schedule = timetable_data.get(target_day_name, [])
     
     if not today_schedule:
-        print("오늘 수업이 없습니다.")
         return
 
-    # 메시지 조립 (모바일 최적화)
-    message_text = f"📅 *{now.strftime('%m/%d')} {target_day_name} 시간표 (1-3)*\n"
-    message_text += "━━━━━━━━━━━━━━━━━━━━\n"
+    # --- [수정 2. 메시지 디자인: 선 제거 및 정렬] ---
+    # 제목 부분 (선 대신 이모지로 깔끔하게)
+    message_text = f"✨ *{now.strftime('%m/%d')} {target_day_ko} 시간표* ✨\n"
+    message_text += " \n" # 한 줄 띄우기
 
     for item in today_schedule:
-        message_text += f"\n{item['period']}️⃣ *{item['subject']}* ({item['teacher']})\n"
-        message_text += f"📍 _{item['location']} ({item['floor']})_\n"
+        # 교시 숫자 추출
+        p = item['period'].replace("교시", "").strip()
+        
+        # 폰에서 삐져나오는 선 대신 '여백'과 '이모지'로 가독성 확보
+        message_text += f"{p}️⃣  *{item['subject']}* ({item['teacher']})\n"
+        message_text += f"      📍 _{item['location']} ({item['floor']})_\n\n"
 
-    # 슬랙 전송 (채널 이름 CHANNEL로 통일)
-    try:
-        client.chat_postMessage(channel=CHANNEL, text=message_text)
-        print("메시지 전송 성공!")
-    except Exception as e:
-        print(f"전송 실패: {e}")
-
-if __name__ == "__main__":
-    send_slack_timetable()
-
-
+    # 전송 (변수명 CHANNEL 통일 확인!)
+    client.chat_postMessage(channel=CHANNEL, text=message_text)
