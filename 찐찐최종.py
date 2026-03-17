@@ -70,7 +70,7 @@ def send_timetable():
     for i, (subj, tchr, t_raw) in enumerate(periods, 1):
         room, floor = get_classroom(t_raw, subj, at, i-1)
         
-        # 장소/층수 표시 (동아리 예외처리)
+        # 장소/층수 표시 정리
         if (today == 2 or today == 3) and i == 7:
             room_display = "동아리"
             floor_display = ""
@@ -78,7 +78,7 @@ def send_timetable():
             room_display = room
             floor_display = f"({floor})" if floor else ""
 
-        # 너비 맞춤 (과목/선생님 3글자씩)
+        # 너비 맞춤 (한글 3글자 기준)
         s_fixed = subj[:3].ljust(4) 
         t_fixed = tchr[:3].ljust(4) 
         
