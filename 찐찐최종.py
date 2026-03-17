@@ -52,18 +52,11 @@ def send_timetable():
     day_data = z[GRADE][CLASS_NUM][today+1]
     
     # --- [수정된 메시지 생성 부분] ---
+    # --- [수정된 메시지 생성 부분] ---
     msg = f"📅 *{DAYS[today]}요일 | {GRADE}-{CLASS_NUM} 시간표*\n"
     msg += "```"
-    msg += "교시 | 과목       | 장소\n"
-    msg += "─────|────────────|──────────────\n"
-
-    periods = []
-    for code in day_data[1:][:day_data[0]]:
-        if not code: continue
-        subj = str(sl[code//1000]) if 0 < code//1000 < len(sl) else ""
-        t_raw = str(tl[code%1000]).rstrip("*").strip() if 0 < code%1000 < len(tl) else ""
-        t_name = "임기" + ("홍" if "공영" in subj else "묵") if t_raw == "임기" else NAME_MAP.get(t_raw, t_raw)
-        periods.append((subj, t_name, t_raw))
+    msg += "교시|과목  |선생님|장소(층)\n"
+    msg += "───|──────|──────|──────────\n"
 
     at = [r for _, _, r in periods]
     for i, (subj, tchr, t_raw) in enumerate(periods, 1):
@@ -71,13 +64,17 @@ def send_timetable():
         
         # 7교시 동아리 등 예외 처리
         if (today == 2 or today == 3) and i == 7:
-            room_display = "동아리실"
+            room_display = "동아리"
+            floor_display = ""
         else:
             room_display = room
+            floor_display = f"({floor})" if floor else ""
 
-        # 한글 너비 맞춤 (과목명 4글자 기준 정렬)
-        s_fixed = subj[:4].ljust(6)
-        msg += f" {i}   | {s_fixed} | {room_display}\n"
+        # 글자 수 강제 고정 (한글 2글자 너비 기준)
+        s_fix = subj[:2].ljust(3)   # 과목 앞 2글자
+        t_fix = tchr[:2].ljust(3)   # 이름 앞 2글자 (예: 강은지 -> 강은)
+        
+        msg += f" {i} | {s_fix} | {t_fix} | {room_display}{floor_display}\n"
     
     msg += "```"
 
