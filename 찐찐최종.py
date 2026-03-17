@@ -51,18 +51,26 @@ def send_timetable():
     tl, sl, z = data.get("자료446",[]), data.get("자료492",[]), data.get("자료147",[])
     day_data = z[GRADE][CLASS_NUM][today+1]
     
-    # --- [수정된 메시지 생성 부분] ---
-    # --- [수정된 메시지 생성 부분] ---
+    # 메시지 상단
     msg = f"📅 *{DAYS[today]}요일 | {GRADE}-{CLASS_NUM} 시간표*\n"
     msg += "```"
-    msg += "교시|과목  |선생님|장소(층)\n"
-    msg += "───|──────|──────|──────────\n"
+    msg += "교시| 과목  | 선 생 님 | 장소(층)\n"
+    msg += "───|───────|──────────|──────────\n"
+
+    # 데이터 정리 (에러 방지용)
+    periods = []
+    for code in day_data[1:][:day_data[0]]:
+        if not code: continue
+        subj = str(sl[code//1000]) if 0 < code//1000 < len(sl) else ""
+        t_raw = str(tl[code%1000]).rstrip("*").strip() if 0 < code%1000 < len(tl) else ""
+        t_name = "임기" + ("홍" if "공영" in subj else "묵") if t_raw == "임기" else NAME_MAP.get(t_raw, t_raw)
+        periods.append((subj, t_name, t_raw))
 
     at = [r for _, _, r in periods]
     for i, (subj, tchr, t_raw) in enumerate(periods, 1):
         room, floor = get_classroom(t_raw, subj, at, i-1)
         
-        # 7교시 동아리 등 예외 처리
+        # 장소 및 층수 표시 정리
         if (today == 2 or today == 3) and i == 7:
             room_display = "동아리"
             floor_display = ""
@@ -70,20 +78,21 @@ def send_timetable():
             room_display = room
             floor_display = f"({floor})" if floor else ""
 
-        # 글자 수 강제 고정 (한글 2글자 너비 기준)
-        s_fix = subj[:2].ljust(3)   # 과목 앞 2글자
-        t_fix = tchr[:2].ljust(3)   # 이름 앞 2글자 (예: 강은지 -> 강은)
+        # 너비 맞춤 (한글 칸 수 조절)
+        s_fixed = subj[:3].ljust(4) # 과목 3글자
+        t_fixed = tchr[:3].ljust(4) # 선생님 3글자
         
-        msg += f" {i} | {s_fix} | {t_fix} | {room_display}{floor_display}\n"
+        msg += f" {i} | {s_fixed} | {t_fixed} | {room_display}{floor_display}\n"
     
     msg += "```"
 
     try:
         client = WebClient(token=SLACK_TOKEN, ssl=ssl.create_default_context(cafile=certifi.where()))
         client.chat_postMessage(channel=CHANNEL_ID, text=msg)
-        print(f"[{datetime.now(KST)}] 전송 완료! 🚀")
+        print(f"[{datetime.now(KST)}] 전송 성공! 🚀")
     except Exception as e:
         print(f"에러: {e}")
+
 
 if __name__ == "__main__":
     send_timetable()
