@@ -27,36 +27,36 @@ timetable_data = {
     ]
 }
 
-# --- [수정 1. 요일 한글 변환 추가] ---
+# 1. 요일 변환 사전 (함수 밖에 두거나 안에 두어도 됨)
 days_ko = {
-    "Monday": "월요일",
-    "Tuesday": "화요일",
-    "Wednesday": "수요일",
-    "Thursday": "목요일",
-    "Friday": "금요일",
-    "Saturday": "토요일",
-    "Sunday": "일요일"
+    "Monday": "월요일", "Tuesday": "화요일", "Wednesday": "수요일",
+    "Thursday": "목요일", "Friday": "금요일", "Saturday": "토요일", "Sunday": "일요일"
 }
-target_day_ko = days_ko.get(target_day_name, target_day_name)
 
 def send_slack_timetable():
+    # 데이터는 영어("Wednesday")로 찾고!
     today_schedule = timetable_data.get(target_day_name, [])
     
+    # 출력용 이름만 한글("수요일")로 바꿉니다.
+    target_day_ko = days_ko.get(target_day_name, target_day_name)
+    
     if not today_schedule:
+        print(f"오늘({target_day_name})은 수업 데이터가 없네요.")
         return
 
-    # --- [수정 2. 메시지 디자인: 선 제거 및 정렬] ---
-    # 제목 부분 (선 대신 이모지로 깔끔하게)
-    message_text = f"✨ *{now.strftime('%m/%d')} {target_day_ko} 시간표* ✨\n"
-    message_text += " \n" # 한 줄 띄우기
+    # 메시지 디자인 (선 빼고 공백으로 예쁘게)
+    message_text = f"✨ *{now.strftime('%m/%d')} {target_day_ko} 시간표* ✨\n\n"
 
     for item in today_schedule:
-        # 교시 숫자 추출
         p = item['period'].replace("교시", "").strip()
-        
-        # 폰에서 삐져나오는 선 대신 '여백'과 '이모지'로 가독성 확보
+        # 선(-) 대신 이모지와 줄바꿈으로 정리
         message_text += f"{p}️⃣  *{item['subject']}* ({item['teacher']})\n"
         message_text += f"      📍 _{item['location']} ({item['floor']})_\n\n"
 
-    # 전송 (변수명 CHANNEL 통일 확인!)
+    # 전송 (CHANNEL 이름 확인!)
+    try:
+        client.chat_postMessage(channel=CHANNEL, text=message_text)
+        print("성공적으로 보냈습니다!")
+    except Exception as e:
+        print(f"에러 발생: {e}")
     client.chat_postMessage(channel=CHANNEL, text=message_text)
