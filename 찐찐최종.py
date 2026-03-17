@@ -84,5 +84,5 @@ def send_timetable():
         print(f"슬랙 전송 에러: {e}")
 
 # --- [스케줄러 설정] ---
-if __name__ == ""__main__"":
+if __name__ == "__main__":
     send_timetable()
