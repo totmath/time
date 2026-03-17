@@ -4,7 +4,7 @@ on:
   schedule:
     # 한국 시간 기준 아침 08:10 (UTC 23:10)
     # 월~금 아침마다 실행됩니다.
-    - cron: '37 16 * * *' 
+    - cron: '42 16 * * *' 
   workflow_dispatch: # 지금 바로 실행해볼 수 있는 버튼 생성
 
 jobs:
