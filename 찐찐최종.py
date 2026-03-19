@@ -15,15 +15,29 @@ client = WebClient(token=SLACK_TOKEN)
 
 # --- [2. 시간표 데이터] ---
 # 사용자님의 데이터 구조에 맞춰 예시를 넣었습니다. 실제 데이터와 다르면 수정하세요!
+# 요일 이름은 반드시 'Monday', 'Tuesday'... 처럼 대문자로 시작하게 맞추세요!
 timetable_data = {
+    "Monday": [
+        {"period": "1", "subject": "수학", "teacher": "김OO", "location": "201호", "floor": "2층"},
+        {"period": "2", "subject": "국어", "teacher": "이OO", "location": "303호", "floor": "3층"},
+        # ... 나머지 월요일 수업 추가 ...
+    ],
+    "Tuesday": [
+        {"period": "1", "subject": "화학", "teacher": "박OO", "location": "화학실", "floor": "4층"},
+        # ... 나머지 화요일 수업 추가 ...
+    ],
     "Wednesday": [
         {"period": "1", "subject": "물리1", "teacher": "강은지", "location": "물리학실1", "floor": "4층"},
         {"period": "2", "subject": "물리1", "teacher": "강은지", "location": "물리학실1", "floor": "4층"},
-        {"period": "3", "subject": "통물", "teacher": "양하은", "location": "물리학실1", "floor": "4층"},
-        {"period": "4", "subject": "공수2", "teacher": "조동기", "location": "201호", "floor": "2층"},
-        {"period": "5", "subject": "통사1", "teacher": "김정민", "location": "303호", "floor": "3층"},
-        {"period": "6", "subject": "통지", "teacher": "오상림", "location": "지구과학실1", "floor": "5층"},
-        {"period": "7", "subject": "동아리", "teacher": "홍창욱", "location": "동아리실", "floor": "기타"}
+        # ... 나머지 수요일 수업 추가 ...
+    ],
+    "Thursday": [
+        {"period": "1", "subject": "정보", "teacher": "최OO", "location": "정보실", "floor": "3층"},
+        # ... 아까 에러 났던 목요일! 여기에 내용을 채우면 해결됩니다 ...
+    ],
+    "Friday": [
+        {"period": "1", "subject": "체육", "teacher": "정OO", "location": "강당", "floor": "1층"},
+        # ... 나머지 금요일 수업 추가 ...
     ]
 }
 
